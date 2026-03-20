@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Feed - SocialSphere{% endblock %}
+
+{% block content %}
+<div class="feed-container">
+    <div class="create-post glass-card">
+        <h2>Create Post</h2>
+        <form method="POST" id="post-form">
+            {% csrf_token %}
+            {{ form.content }}
+            <button type="submit" class="btn-primary">Post</button>
+        </form>
+    </div>
+
+    <div class="posts-feed">
+        {% for post in posts %}
+            <div class="post-card glass-card" data-post-id="{{ post.id }}">
+                <div class="post-header">
+                    <img src="{% if post.user.profile_picture %}{{ post.user.profile_picture.url }}{% else %}https://via.placeholder.com/40{% endif %}" 
+                         alt="{{ post.user.username }}" class="avatar">
+                    <div class="post-user-info">
+                        <a href="{% url 'profile' post.user.username %}" class="username">{{ post.user.username }}</a>
+                        <span class="timestamp">{{ post.created_at|timesince }} ago</span>
+                    </div>
+                </div>
+                
+                <div class="post-content">
+                    <p>{{ post.content }}</p>
+                </div>
+                
+                <div class="post-actions">
+                    <button class="action-btn like-btn {% if user in post.likes.all %}liked{% endif %}" 
+                            data-post-id="{{ post.id }}">
+                        ❤️ <span class="like-count">{{ post.like_count }}</span>
+                    </button>
+                    <button class="action-btn comment-btn" data-post-id="{{ post.id }}">
+                        💬 <span class="comment-count">{{ post.comment_count }}</span>
+                    </button>
+                </div>
+                
+                <div class="comments-section" id="comments-{{ post.id }}" style="display: none;">
+                    <div class="comments-list">
+                        {% for comment in post.comments.all|slice:":5" %}
+                            <div class="comment">
+                                <strong>{{ comment.user.username }}</strong>
+                                <p>{{ comment.content }}</p>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    <form class="comment-form" data-post-id="{{ post.id }}">
+                        {% csrf_token %}
+                        <textarea placeholder="Write a comment..." rows="2"></textarea>
+                        <button type="submit" class="btn-small">Comment</button>
+                    </form>
+                </div>
+            </div>
+        {% empty %}
+            <div class="empty-state glass-card">
+                <p>No posts yet. Follow some users to see their posts!</p>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
